@@ -50,11 +50,11 @@ def loadData():
     except IOError:
         print ("Could not read file:", csvfile)
 
-def downloadImage(img,folder):
+def downloadImage(img,name2,folder):
     
     download_img = urllib.request.urlopen(img)
     name=img.split('/')
-    path_to_data=os.path.join(folder,name[len(name)-1])
+    path_to_data=os.path.join(folder,name2+name[len(name)-1])
     
     txt = open(path_to_data, "wb")
     
@@ -100,14 +100,37 @@ def openLink(uri,folder):
                             os.mkdir(folder)
                         except OSError:
                             pass
-                        downloadImage(l2,folder)
+                        downloadImage(l2,'',folder)
                         writeOutput(writer,content,idd,l2.split('/'))
                 
+                else:
+                    doLink(writer,id,folder)
             except:
                 continue
         
         csvf.close()
+
+def doLink(writer,id,folder):
+    if 'www.ikmk.at' in id:
+        soup2 = BeautifulSoup(urllib.request.urlopen(id), "html.parser")
+        obs=soup2.find('img',{'id':'main-image'})
         
+        title=soup2.find('title')
+        idd=id.split('object?id=')[1]
+        front=obs['src']
+    
+        revs=front.replace('vs_exp.jpg','rs_opt.jpg')
+        
+        nl=front.split(idd+'/')[1]
+        n1=nl.replace('vs_exp.jpg',idd+'vs_exp.jpg')
+        n2=nl.replace('vs_exp.jpg',idd+'rs_opt.jpg')
+        
+        downloadImage(front,idd,folder)
+        downloadImage(revs,idd,folder)
+        
+        writeOutput(writer,title.contents[0],idd,n1.split('/'))
+        writeOutput(writer,title.contents[0],idd,n2.split('/'))
+            
 def writeOutput(writer,content,idd, l2):
     image_name=l2[len(l2)-1]
     writer.writerow({'id': idd,'title':content,'image':image_name}) 
