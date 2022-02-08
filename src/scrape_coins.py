@@ -35,20 +35,24 @@ def loadData():
             #open individual files
             with open(os.path.join(directory,f),'r') as csvfile:
                 reader = csv.DictReader(csvfile)
+                
+                with open(filename, 'w') as csvf:
+                    writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
+                    writer.writeheader()   
                     
-                #read the rows of data
-                for row in reader:
+                    #read the rows of data
+                    for row in reader:
                    
-                    uri=row['URI']
-                    title=row['Title']
-                    rec_id=row['RecordId']
-                    from_date=row['From Date']
-                    to_date=row['To Date']
-                    authority=row['Authority']
+                        uri=row['URI']
+                        title=row['Title']
+                        rec_id=row['RecordId']
+                        from_date=row['From Date']
+                        to_date=row['To Date']
+                        authority=row['Authority']
                     
-                    image_folder=os.path.join(pn,'images',rec_id)
+                        image_folder=os.path.join(pn,'images',rec_id)
 
-                    openLink(uri,image_folder)
+                        openLink(uri,image_folder, writer)
                   
         
     except IOError:
@@ -65,11 +69,8 @@ def downloadImage(img,name2,folder):
     #write the binary data
     txt.write(download_img.read())
     
-def openLink(uri,folder):
+def openLink(uri,folder, writer):
     
-    with open(filename, 'w') as csvf:
-        writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
-        writer.writeheader()
         #get request uri
         soup = BeautifulSoup(urllib.request.urlopen(uri), "html.parser")
         
@@ -116,15 +117,15 @@ def openLink(uri,folder):
             except:
                 continue
             
-        csvf.close()
+       
 
-def doLink(writer,id,folder):
-    if 'www.ikmk.at' or 'https://www.univie.ac.at' in id:
-        soup2 = BeautifulSoup(urllib.request.urlopen(id), "html.parser")
+def doLink(writer,ids,folder):
+    if 'www.ikmk.at' or 'https://www.univie.ac.at' or 'https://ikmk.smb.museum' in id:
+        soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
         obs=soup2.find('img',{'id':'main-image'})
         
         title=soup2.find('title')
-        idd=id.split('object?id=')[1]
+        idd=ids.split('object?id=')[1]
         front=obs['src']
     
         revs=front.replace('vs_exp.jpg','rs_opt.jpg')
