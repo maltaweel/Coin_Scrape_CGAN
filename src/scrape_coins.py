@@ -83,24 +83,24 @@ def openLink(uri,folder, writer):
         for linkz in links:
           
             
-            id=linkz['href']
+            ids=linkz['href']
         
-            if 'http://nomisma.org/' in id:
+            if 'http://nomisma.org/' in ids:
                 continue
         
-            if '"http://numismatics.org/ocre/id/' in id:
+            if '"http://numismatics.org/ocre/id/' in ids:
                 continue  
             #get the link that is in src (i.e., an image from html)
             try:
-                print(id)
-                soup2 = BeautifulSoup(urllib.request.urlopen(id), "html.parser")
+                print(ids)
+                soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
             
-                if 'http://numismatics.org' in id:
+                if 'http://numismatics.org' in ids:
                     imgs=soup2.findAll(title='Full resolution image')
                 
                     title=soup2.find('meta',property='og:title')
                 
-                    idd=id.split('/collection/')[1].strip()
+                    idd=ids.split('/collection/')[1].strip()
                     
                     for im in imgs:
                         l2=im['href']
@@ -113,14 +113,15 @@ def openLink(uri,folder, writer):
                         writeOutput(writer,content,idd,l2.split('/'))
                 
                 else:
-                    doLink(writer,id,folder)
+                    doLink(writer,ids,folder)
             except:
                 continue
             
        
 
 def doLink(writer,ids,folder):
-    if 'www.ikmk.at' or 'https://www.univie.ac.at' or 'https://ikmk.smb.museum' in id:
+    
+    if 'www.ikmk.at' or 'https://www.univie.ac.at' or 'https://ikmk.smb.museum' in ids:
         soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
         obs=soup2.find('img',{'id':'main-image'})
         
@@ -139,11 +140,32 @@ def doLink(writer,ids,folder):
         
         writeOutput(writer,title.contents[0],idd,n1.split('/'))
         writeOutput(writer,title.contents[0],idd,n2.split('/'))
-   # 
-   # elif 'https://collections.mfa.org/objects/' in id:
-   #    print(id) 
+       
+    elif 'https://finds.org.uk/database/artefacts/' in ids:
+        doPAS(writer,ids,folder)
+
+
+def doPAS(writer,ids,folder):
+    soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
+    obs=soup2.findAll('img')
+    idt=soup2.find('span',{'class':'fourfigure'})
     
-    
+    idd=idt.contents[0]
+    title=soup2.find('meta',{'property':'og:title'})
+    titl=title['content']
+   
+    src=''
+    for i in obs:
+        src=i['src']
+        
+        if '/medium' in src:
+            downloadImage(src,'',folder)
+            break
+        
+    writeOutput(writer,titl,idd,src.split('/'))
+  
+     
+     
           
 def writeOutput(writer,content,idd, l2):
     image_name=l2[len(l2)-1]
