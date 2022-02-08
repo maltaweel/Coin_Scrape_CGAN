@@ -88,14 +88,14 @@ def openLink(uri,folder, writer):
             if 'http://nomisma.org/' in ids:
                 continue
         
-            if '"http://numismatics.org/ocre/id/' in ids:
+            if 'http://numismatics.org/ocre/id/' in ids:
                 continue  
             #get the link that is in src (i.e., an image from html)
             try:
                 print(ids)
-                soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
-            
+
                 if 'http://numismatics.org' in ids:
+                    soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
                     imgs=soup2.findAll(title='Full resolution image')
                 
                     title=soup2.find('meta',property='og:title')
@@ -114,14 +114,15 @@ def openLink(uri,folder, writer):
                 
                 else:
                     doLink(writer,ids,folder)
-            except:
+            except Exception as e:
+                print(e)
                 continue
             
        
 
 def doLink(writer,ids,folder):
     
-    if 'www.ikmk.at' or 'https://www.univie.ac.at' or 'https://ikmk.smb.museum' in ids:
+    if 'www.ikmk.at'in ids or 'https://www.univie.ac.at' in ids or 'https://ikmk.smb.museum' in ids:
         soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
         obs=soup2.find('img',{'id':'main-image'})
         
@@ -143,6 +144,9 @@ def doLink(writer,ids,folder):
        
     elif 'https://finds.org.uk/database/artefacts/' in ids:
         doPAS(writer,ids,folder)
+        
+    elif 'https://www.britishmuseum.org/collection/object/' in ids:
+        doBM(writer,ids,folder)
 
 
 def doPAS(writer,ids,folder):
@@ -164,13 +168,15 @@ def doPAS(writer,ids,folder):
         
     writeOutput(writer,titl,idd,src.split('/'))
   
-     
+def doBM(writer,ids,folder):
+    soup2 = BeautifulSoup(urllib.request.urlopen(ids),'lxml')
+    obs=soup2.findAll('img')
+    print('output')
      
           
 def writeOutput(writer,content,idd, l2):
     image_name=l2[len(l2)-1]
     writer.writerow({'id': idd,'title':content,'image':image_name})
-    csvfile.flush()
     
 
 def main():
