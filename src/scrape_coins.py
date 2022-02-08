@@ -10,6 +10,7 @@ import sys
 import time
 import urllib.request
 from bs4 import BeautifulSoup 
+from rpy2.tests.robjects.test_dataframe import test_from_csvfile
 
 #the path to the data folder
 pn=os.path.abspath(__file__)
@@ -19,6 +20,7 @@ directory=os.path.join(pn,'data')
 filename=os.path.join(pn,'output','output.csv')
 fieldnames=['id','title','image']
 
+csvfile=''
 def loadData():
 
     #open the file(s) in the modified directory
@@ -29,13 +31,14 @@ def loadData():
             if '.csv' not in f:
                 continue
                 
-             
+        
             #open individual files
             with open(os.path.join(directory,f),'r') as csvfile:
                 reader = csv.DictReader(csvfile)
                     
                 #read the rows of data
                 for row in reader:
+                   
                     uri=row['URI']
                     title=row['Title']
                     rec_id=row['RecordId']
@@ -46,6 +49,7 @@ def loadData():
                     image_folder=os.path.join(pn,'images',rec_id)
 
                     openLink(uri,image_folder)
+                  
         
     except IOError:
         print ("Could not read file:", csvfile)
@@ -64,7 +68,7 @@ def downloadImage(img,name2,folder):
 def openLink(uri,folder):
     
     with open(filename, 'w') as csvf:
-        writer = csv.DictWriter(csvf, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
         writer.writeheader()
         #get request uri
         soup = BeautifulSoup(urllib.request.urlopen(uri), "html.parser")
@@ -73,8 +77,11 @@ def openLink(uri,folder):
         links = soup.findAll('a',{'target':'_blank'})
     
         #iterate through the links for images   
+        
+      
         for linkz in links:
-         
+          
+            
             id=linkz['href']
         
             if 'http://nomisma.org/' in id:
@@ -84,6 +91,7 @@ def openLink(uri,folder):
                 continue  
             #get the link that is in src (i.e., an image from html)
             try:
+                print(id)
                 soup2 = BeautifulSoup(urllib.request.urlopen(id), "html.parser")
             
                 if 'http://numismatics.org' in id:
@@ -107,11 +115,11 @@ def openLink(uri,folder):
                     doLink(writer,id,folder)
             except:
                 continue
-        
+            
         csvf.close()
 
 def doLink(writer,id,folder):
-    if 'www.ikmk.at' in id:
+    if 'www.ikmk.at' or 'https://www.univie.ac.at' in id:
         soup2 = BeautifulSoup(urllib.request.urlopen(id), "html.parser")
         obs=soup2.find('img',{'id':'main-image'})
         
@@ -130,10 +138,16 @@ def doLink(writer,id,folder):
         
         writeOutput(writer,title.contents[0],idd,n1.split('/'))
         writeOutput(writer,title.contents[0],idd,n2.split('/'))
-            
+   # 
+   # elif 'https://collections.mfa.org/objects/' in id:
+   #    print(id) 
+    
+    
+          
 def writeOutput(writer,content,idd, l2):
     image_name=l2[len(l2)-1]
-    writer.writerow({'id': idd,'title':content,'image':image_name}) 
+    writer.writerow({'id': idd,'title':content,'image':image_name})
+    csvfile.flush()
     
 
 def main():
