@@ -11,11 +11,18 @@ import time
 import urllib.request
 from bs4 import BeautifulSoup 
 from rpy2.tests.robjects.test_dataframe import test_from_csvfile
+from selenium import webdriver
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 
 #the path to the data folder
 pn=os.path.abspath(__file__)
 pn=pn.split("src")[0]  
 directory=os.path.join(pn,'data')
+
+driver=os.path.join(pn,'driver','chromedriver')
+#driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
 filename=os.path.join(pn,'output','output.csv')
 fieldnames=['id','title','image']
@@ -144,9 +151,9 @@ def doLink(writer,ids,folder):
        
     elif 'https://finds.org.uk/database/artefacts/' in ids:
         doPAS(writer,ids,folder)
-        
-    elif 'https://www.britishmuseum.org/collection/object/' in ids:
-        doBM(writer,ids,folder)
+    
+    else:
+        continue
 
 
 def doPAS(writer,ids,folder):
@@ -168,11 +175,6 @@ def doPAS(writer,ids,folder):
         
     writeOutput(writer,titl,idd,src.split('/'))
   
-def doBM(writer,ids,folder):
-    soup2 = BeautifulSoup(urllib.request.urlopen(ids),'lxml')
-    obs=soup2.findAll('img')
-    print('output')
-     
           
 def writeOutput(writer,content,idd, l2):
     image_name=l2[len(l2)-1]
