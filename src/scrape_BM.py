@@ -9,8 +9,14 @@ from os import listdir
 import csv
 import sys
 import time
-import urllib.request
-from bs4 import BeautifulSoup 
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import certifi
+import ssl
+
+context = ssl._create_unverified_context()
+
+
 
 #the path to the data folder
 pn=os.path.abspath(__file__)
@@ -20,41 +26,59 @@ directory=os.path.join(pn,'data')
 filename=os.path.join(pn,'output','output_bm.csv')
 fieldnames=['id','title','image']
 
-def loadData(directory, f):
+def loadData():
     #open individual files
-    with open(os.path.join(directory,f),'r') as csvfile:
-        reader = csv.DictReader(csvfile)
+    for f in listdir(directory):
                 
-        with open(filename, 'w') as csvf:
-            writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
-            writer.writeheader()   
+            #should only be .csv files
+        if 'collections' not in f:
+            continue
+    
+        with open(os.path.join(directory,f),'r') as csvfile:
+            reader = csv.DictReader(csvfile)
+        
+        
+            with open(filename, 'w') as csvf:
+                writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
+                writer.writeheader()   
                     
-            #read the rows of data
-            for row in reader:
+                #read the rows of data
+                for row in reader:
                 
-                image=row['Image']
-                objType=row['Object type']
-                mNumber=row['Museum number']
-                description=row['Description']
+                    image=row['Image']
+                    #objType=row['Object type']
+                    mNumber=row['Museum number']
+                    description=row['Description']
                 
-                img_folder=os.path.join(pn,'images_bm')
-                downloadImage(image,'',img_folder)
+                    img_folder=os.path.join(pn,'images_bm')
+                    downloadImage(image,'',img_folder)
+                    
+                    writeOutput(writer,description,mNumber,image.split('/'))
+                    csvf.flush()
                 
 
 def downloadImage(img,name2,folder):
     
-    download_img = urllib.request.urlopen(img)
+    download_img = urlopen(img,context=context)
     name=img.split('/')
-    path_to_data=os.path.join(folder,name2+name[len(name)-1])
+    name=name[len(name)-1].replace('preview_','')
+    path_to_data=os.path.join(folder,name2+name)
     
     txt = open(path_to_data, "wb")
     
     #write the binary data
     txt.write(download_img.read())
+   
+    
+def writeOutput(writer,content,idd, l2):
+    image_name=l2[len(l2)-1]
+    image_name=image_name.replace('preview_','')
+    writer.writerow({'id': idd,'title':content,'image':image_name})
+    
         
 def main():
-    uri='https://www.britishmuseum.org/collection/search?keyword=hadrian&keyword=coins'
-    loadData(uri)
+   
+    loadData()
     print('run')
 
 

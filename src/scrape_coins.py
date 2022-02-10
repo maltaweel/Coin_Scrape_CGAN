@@ -35,7 +35,7 @@ def loadData():
         for f in listdir(directory):
                 
             #should only be .csv files
-            if '.csv' not in f:
+            if '.csv' not in f or 'collections' in f:
                 continue
                 
         
@@ -53,6 +53,7 @@ def loadData():
                         uri=row['URI']
                         title=row['Title']
                         rec_id=row['RecordId']
+                        print(rec_id)
                         from_date=row['From Date']
                         to_date=row['To Date']
                         authority=row['Authority']
@@ -60,6 +61,7 @@ def loadData():
                         image_folder=os.path.join(pn,'images',rec_id)
 
                         openLink(uri,image_folder, writer)
+                        csvf.flush()
                   
         
     except IOError:
@@ -99,8 +101,7 @@ def openLink(uri,folder, writer):
                 continue  
             #get the link that is in src (i.e., an image from html)
             try:
-                print(ids)
-
+            
                 if 'http://numismatics.org' in ids:
                     soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
                     imgs=soup2.findAll(title='Full resolution image')
@@ -152,8 +153,6 @@ def doLink(writer,ids,folder):
     elif 'https://finds.org.uk/database/artefacts/' in ids:
         doPAS(writer,ids,folder)
     
-    else:
-        continue
 
 
 def doPAS(writer,ids,folder):
