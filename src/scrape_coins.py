@@ -60,8 +60,8 @@ def loadData():
                     
                         image_folder=os.path.join(pn,'images',rec_id)
 
-                        openLink(uri,image_folder, writer)
-                        csvf.flush()
+                        openLink(uri,image_folder, writer,csvf)
+                        
                   
         
     except IOError as e:
@@ -78,7 +78,7 @@ def downloadImage(img,name2,folder):
     #write the binary data
     txt.write(download_img.read())
     
-def openLink(uri,folder, writer):
+def openLink(uri,folder, writer, csvf):
     
         #get request uri
         soup = BeautifulSoup(urllib.request.urlopen(uri), "html.parser")
@@ -126,7 +126,7 @@ def openLink(uri,folder, writer):
                 print(e)
                 continue
             
-       
+            csvf.flush()
 
 def doLink(writer,ids,folder):
     
