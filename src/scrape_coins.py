@@ -64,8 +64,8 @@ def loadData():
                         csvf.flush()
                   
         
-    except IOError:
-        print ("Could not read file:", csvfile)
+    except IOError as e:
+        print ("Could not read file:", csvfile, e)
 
 def downloadImage(img,name2,folder):
     
