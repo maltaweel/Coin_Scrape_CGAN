@@ -1,5 +1,6 @@
 '''
 Module to scrape data from several different sites (not BM).
+This uses input in the data folder (query.csv).
 The data include coin images and descriptive information about the coins,
 including description and id.
 

@@ -1,4 +1,6 @@
 '''
+Module and class to scrape the BM's coin data using
+a data file in the data folder (i.e., collections.csv type file).
 Created on 9 Feb 2022
 
 @author: maltaweel
