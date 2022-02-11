@@ -58,8 +58,8 @@ def loadData():
                         writeOutput(writer,description,denomination,mNumber,image.split('/'))
                         csvf.flush()
                     
-                    except ValueError as e:
-                        print(image,e)
+                    except Exception as e:
+                        print(e)
                         continue
                         
                 

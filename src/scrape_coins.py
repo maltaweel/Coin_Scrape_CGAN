@@ -1,4 +1,8 @@
 '''
+Module to scrape data from several different sites (not BM).
+The data include coin images and descriptive information about the coins,
+including description and id.
+
 Created on 6 Feb 2022
 
 @author: maltaweel
@@ -6,80 +10,107 @@ Created on 6 Feb 2022
 import os
 from os import listdir
 import csv
-import sys
-import time
 import urllib.request
 from bs4 import BeautifulSoup 
 from rpy2.tests.robjects.test_dataframe import test_from_csvfile
-from selenium import webdriver
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 
 #the path to the data folder
 pn=os.path.abspath(__file__)
 pn=pn.split("src")[0]  
 directory=os.path.join(pn,'data')
 
-driver=os.path.join(pn,'driver','chromedriver')
-#driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
-
+#file output path
 filename=os.path.join(pn,'output','output.csv')
+
+#fieldnames for output file
 fieldnames=['id','description','denomination','image']
 
+#csv file to output
 csvfile=''
-def loadData():
 
-    #open the file(s) in the modified directory
-    try:
-        for f in listdir(directory):
+
+class Scrape():
+    
+    '''
+    Method to load data from /data/ folder
+    '''
+    def loadData(self):
+
+        #open the file(s) in the modified directory
+        try:
+            for f in listdir(directory):
                 
-            #should only be .csv files
-            if '.csv' not in f or 'collections' in f:
-                continue
+                #should only be .csv files
+                if '.csv' not in f or 'collections' in f:
+                    continue
                 
-        
-            #open individual files
-            with open(os.path.join(directory,f),'r') as csvfile:
-                reader = csv.DictReader(csvfile)
-                
+                #this will output data to the output folder
                 with open(filename, 'w') as csvf:
                     writer = csv.DictWriter(csvf, fieldnames=fieldnames,delimiter=',', quotechar='"')
                     writer.writeheader()   
                     
-                    #read the rows of data
-                    for row in reader:
-                   
-                        uri=row['URI']
-                        title=row['Title']
-                        rec_id=row['RecordId']
-                        denomination=row['Denomination']
-                        print(rec_id)
-                        from_date=row['From Date']
-                        to_date=row['To Date']
-                        authority=row['Authority']
+                    #open individual files to read from /data folder
+                    with open(os.path.join(directory,f),'r') as csvfile:
+                        reader = csv.DictReader(csvfile)
                     
-                        image_folder=os.path.join(pn,'images',rec_id)
-
-                        openLink(uri,image_folder,denomination, writer,csvf)
+                        #read the rows of data
+                        for row in reader:
+                            
+                            #get uri
+                            uri=row['URI']
+                            #title=row['Title']
+                            
+                            #record data (id)
+                            rec_id=row['RecordId']
+                            
+                            #coine info
+                            denomination=row['Denomination']
+                            print(rec_id)
+                            #from_date=row['From Date']
+                            #to_date=row['To Date']
+                            #authority=row['Authority']
+                    
+                            #info for where the coin images are stored
+                            image_folder=os.path.join(pn,'images',rec_id)
+                            
+                            #now scrape the information
+                            self.openLink(uri,image_folder,denomination, writer,csvf)
                         
                   
         
-    except IOError as e:
-        print ("Could not read file:", csvfile, e)
+        except IOError as e:
+            print ("Could not read file:", csvfile, e)
 
-def downloadImage(img,name2,folder):
+    '''
+    Method for downloading images from a given link.
+    @param img- image data
+    @param name2- second name to add to the image name
+    @param folder- the folder to put the image in
+    '''
+    def downloadImage(self,img,name2,folder):
+        
+        #the image to download is downloaded here
+        download_img = urllib.request.urlopen(img)
+        
+        #to make the name split the url link and get the last part of the url
+        name=img.split('/')
+        path_to_data=os.path.join(folder,name2+name[len(name)-1])
+        
+        #open the path to the data stream
+        txt = open(path_to_data, "wb")
     
-    download_img = urllib.request.urlopen(img)
-    name=img.split('/')
-    path_to_data=os.path.join(folder,name2+name[len(name)-1])
+        #write the binary data
+        txt.write(download_img.read())
     
-    txt = open(path_to_data, "wb")
-    
-    #write the binary data
-    txt.write(download_img.read())
-    
-def openLink(uri,folder, denomination,writer, csvf):
+    '''
+    Method to scrape information from links within a site (uri).
+    @param uri- the uri link to get data from
+    @param folder- the folder to put data in
+    @param denomination- the denomination of the coin type
+    @param writer- the writer to write results
+    @param csvf- the csv file to write the outputs
+    '''
+    def openLink(self, uri,folder, denomination,writer, csvf):
     
         #get request uri
         soup = BeautifulSoup(urllib.request.urlopen(uri), "html.parser")
@@ -88,29 +119,35 @@ def openLink(uri,folder, denomination,writer, csvf):
         links = soup.findAll('a',{'target':'_blank'})
     
         #iterate through the links for images   
-        
-      
         for linkz in links:
           
-            
+            #get links
             ids=linkz['href']
         
+            #skip unneeded links
             if 'http://nomisma.org/' in ids:
                 continue
         
             if 'http://numismatics.org/ocre/id/' in ids:
                 continue  
-            #get the link that is in src (i.e., an image from html)
+            
+            #get the link info relevant
             try:
             
+                #get numismatic data
                 if 'http://numismatics.org' in ids:
+                    #use beautifulsoupt to scrape data from link (ids)
                     soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
+                    #the image info
                     imgs=soup2.findAll(title='Full resolution image')
-                
+                    
+                    #title info
                     title=soup2.find('meta',property='og:title')
                 
+                    #get data from the collection link
                     idd=ids.split('/collection/')[1].strip()
                     
+                    #get content information from the image
                     for im in imgs:
                         l2=im['href']
                         content=title['content']
@@ -118,71 +155,115 @@ def openLink(uri,folder, denomination,writer, csvf):
                             os.mkdir(folder)
                         except OSError:
                             pass
-                        downloadImage(l2,'',folder)
-                        writeOutput(writer,content,denomination,idd,l2.split('/'))
+                        
+                        #write out the image
+                        self.downloadImage(l2,'',folder)
+                        
+                        #wtrite out descriptive data about the image
+                        self.writeOutput(writer,content,denomination,idd,l2.split('/'))
                 
                 else:
-                    doLink(writer,ids,denomination,folder)
+                    #if it is not from numismatics.org then see what it is
+                    self.doLink(writer,ids,denomination,folder)
             except Exception as e:
                 print(e)
                 continue
             
             csvf.flush()
 
-def doLink(writer,ids,denomination,folder):
+    '''
+    Method to scrape data from sites that are not numismatics.org but 
+    other coin sites.
+    @param writer- the write to write data
+    @param ids- the id data for the image
+    @param denomination- the denomination of the coin
+    @param folder- the folder for the data to download in
+    '''
+    def doLink(self,writer,ids,denomination,folder):
     
-    if 'www.ikmk.at'in ids or 'https://www.univie.ac.at' in ids or 'https://ikmk.smb.museum' in ids:
-        soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
-        obs=soup2.find('img',{'id':'main-image'})
+        #get ikmk, univie, or other ikmk data
+        if 'www.ikmk.at'in ids or 'https://www.univie.ac.at' in ids or 'https://ikmk.smb.museum' in ids:
+            #use beuatiful soup to scrape
+            soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
+            obs=soup2.find('img',{'id':'main-image'})
         
-        title=soup2.find('title')
-        idd=ids.split('object?id=')[1]
-        front=obs['src']
+            #get descriptive data
+            title=soup2.find('title')
+            idd=ids.split('object?id=')[1]
+            front=obs['src']
     
-        revs=front.replace('vs_exp.jpg','rs_opt.jpg')
+            #make some replacements for the data name
+            revs=front.replace('vs_exp.jpg','rs_opt.jpg')
         
-        nl=front.split(idd+'/')[1]
-        n1=nl.replace('vs_exp.jpg',idd+'vs_exp.jpg')
-        n2=nl.replace('vs_exp.jpg',idd+'rs_opt.jpg')
+            #split up the image to make the relevant image name to download
+            nl=front.split(idd+'/')[1]
+            n1=nl.replace('vs_exp.jpg',idd+'vs_exp.jpg')
+            n2=nl.replace('vs_exp.jpg',idd+'rs_opt.jpg')
         
-        downloadImage(front,idd,folder)
-        downloadImage(revs,idd,folder)
+            #download images (front and back of coin)
+            self.downloadImage(front,idd,folder)
+            self.downloadImage(revs,idd,folder)
         
-        writeOutput(writer,title.contents[0],denomination,idd,n1.split('/'))
-        writeOutput(writer,title.contents[0],denomination,idd,n2.split('/'))
+            #write the descriptive data (front and back of coin data)
+            self.writeOutput(writer,title.contents[0],denomination,idd,n1.split('/'))
+            self.writeOutput(writer,title.contents[0],denomination,idd,n2.split('/'))
        
-    elif 'https://finds.org.uk/database/artefacts/' in ids:
-        doPAS(writer,ids,denomination,folder)
+        #get PAS data
+        elif 'https://finds.org.uk/database/artefacts/' in ids:
+            self.doPAS(writer,ids,denomination,folder)
     
 
-
-def doPAS(writer,ids,denomination,folder):
-    soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
-    obs=soup2.findAll('img')
-    idt=soup2.find('span',{'class':'fourfigure'})
-    
-    idd=idt.contents[0]
-    title=soup2.find('meta',{'property':'og:title'})
-    titl=title['content']
+    '''
+    Method for scraping PAS data.
+    @param writer- the writer to write data
+    @param ids- the id for the images and info to scrape
+    @param denomiation- the denomination of the coin
+    @param folder- the folder to put the data in
+    '''
+    def doPAS(self,writer,ids,denomination,folder):
+        #beautifulsoup to scrape data
+        soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
+        
+        #get image data
+        obs=soup2.findAll('img')
+        idt=soup2.find('span',{'class':'fourfigure'})
+        
+        #get content info.
+        idd=idt.contents[0]
+        title=soup2.find('meta',{'property':'og:title'})
+        titl=title['content']
    
-    src=''
-    for i in obs:
-        src=i['src']
+        src=''
+        for i in obs:
+            src=i['src']
         
-        if '/medium' in src:
-            downloadImage(src,'',folder)
-            break
+            #get the right image
+            if '/medium' in src:
+                self.downloadImage(src,'',folder)
+                break
         
-    writeOutput(writer,titl,denomination,idd,src.split('/'))
+        #write descriptive output
+        self.writeOutput(writer,titl,denomination,idd,src.split('/'))
   
-          
-def writeOutput(writer,content,denomination,idd, l2):
-    image_name=l2[len(l2)-1]
-    writer.writerow({'id': idd,'description':content,'denomination':denomination,'image':image_name})
+    '''
+    Method to write data to csv file.
+    @param writer- the writer
+    @param content- the descriptive data of the coin
+    @param denomiation- the coin denomination
+    @param idd- the id of the coin
+    @param l2- the coin file name
+    '''
+    def writeOutput(self,writer,content,denomination,idd, l2):
+        image_name=l2[len(l2)-1]
+        writer.writerow({'id': idd,'description':content,'denomination':denomination,'image':image_name})
     
-
+'''
+Main method to launch the class to scrape data from several different sites
+found in /output/output.csv
+'''
 def main():
-    loadData()
+    scrape=Scrape()
+    scrape.loadData()
     print('run')
 
 
