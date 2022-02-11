@@ -15,7 +15,7 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import certifi
 import ssl
-import scrape_coins.Scrape as Scrape
+from scrape.scrape_coins import Scrape
 
 context = ssl._create_unverified_context()
 
