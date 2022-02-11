@@ -25,7 +25,7 @@ driver=os.path.join(pn,'driver','chromedriver')
 #driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
 filename=os.path.join(pn,'output','output.csv')
-fieldnames=['id','title','image']
+fieldnames=['id','title','denomination','image']
 
 csvfile=''
 def loadData():
@@ -53,6 +53,7 @@ def loadData():
                         uri=row['URI']
                         title=row['Title']
                         rec_id=row['RecordId']
+                        denomination=row['Denomination']
                         print(rec_id)
                         from_date=row['From Date']
                         to_date=row['To Date']
@@ -60,7 +61,7 @@ def loadData():
                     
                         image_folder=os.path.join(pn,'images',rec_id)
 
-                        openLink(uri,image_folder, writer,csvf)
+                        openLink(uri,image_folder,denomination, writer,csvf)
                         
                   
         
@@ -78,7 +79,7 @@ def downloadImage(img,name2,folder):
     #write the binary data
     txt.write(download_img.read())
     
-def openLink(uri,folder, writer, csvf):
+def openLink(uri,folder, denomination,writer, csvf):
     
         #get request uri
         soup = BeautifulSoup(urllib.request.urlopen(uri), "html.parser")
@@ -118,17 +119,17 @@ def openLink(uri,folder, writer, csvf):
                         except OSError:
                             pass
                         downloadImage(l2,'',folder)
-                        writeOutput(writer,content,idd,l2.split('/'))
+                        writeOutput(writer,content,denomination,idd,l2.split('/'))
                 
                 else:
-                    doLink(writer,ids,folder)
+                    doLink(writer,ids,denomination,folder)
             except Exception as e:
                 print(e)
                 continue
             
             csvf.flush()
 
-def doLink(writer,ids,folder):
+def doLink(writer,ids,denomination,folder):
     
     if 'www.ikmk.at'in ids or 'https://www.univie.ac.at' in ids or 'https://ikmk.smb.museum' in ids:
         soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
@@ -147,15 +148,15 @@ def doLink(writer,ids,folder):
         downloadImage(front,idd,folder)
         downloadImage(revs,idd,folder)
         
-        writeOutput(writer,title.contents[0],idd,n1.split('/'))
-        writeOutput(writer,title.contents[0],idd,n2.split('/'))
+        writeOutput(writer,title.contents[0],denomination,idd,n1.split('/'))
+        writeOutput(writer,title.contents[0],denomination,idd,n2.split('/'))
        
     elif 'https://finds.org.uk/database/artefacts/' in ids:
-        doPAS(writer,ids,folder)
+        doPAS(writer,ids,denomination,folder)
     
 
 
-def doPAS(writer,ids,folder):
+def doPAS(writer,ids,denomination,folder):
     soup2 = BeautifulSoup(urllib.request.urlopen(ids), "html.parser")
     obs=soup2.findAll('img')
     idt=soup2.find('span',{'class':'fourfigure'})
@@ -172,12 +173,12 @@ def doPAS(writer,ids,folder):
             downloadImage(src,'',folder)
             break
         
-    writeOutput(writer,titl,idd,src.split('/'))
+    writeOutput(writer,titl,denomination,idd,src.split('/'))
   
           
-def writeOutput(writer,content,idd, l2):
+def writeOutput(writer,content,denomination,idd, l2):
     image_name=l2[len(l2)-1]
-    writer.writerow({'id': idd,'title':content,'image':image_name})
+    writer.writerow({'id': idd,'title':content,'denomination':denomination,'image':image_name})
     
 
 def main():
