@@ -25,7 +25,7 @@ driver=os.path.join(pn,'driver','chromedriver')
 #driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver")
 
 filename=os.path.join(pn,'output','output.csv')
-fieldnames=['id','title','denomination','image']
+fieldnames=['id','description','denomination','image']
 
 csvfile=''
 def loadData():
@@ -178,7 +178,7 @@ def doPAS(writer,ids,denomination,folder):
           
 def writeOutput(writer,content,denomination,idd, l2):
     image_name=l2[len(l2)-1]
-    writer.writerow({'id': idd,'title':content,'denomination':denomination,'image':image_name})
+    writer.writerow({'id': idd,'description':content,'denomination':denomination,'image':image_name})
     
 
 def main():

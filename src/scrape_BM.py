@@ -24,7 +24,7 @@ pn=pn.split("src")[0]
 directory=os.path.join(pn,'data')
 
 filename=os.path.join(pn,'output','output_bm.csv')
-fieldnames=['id','title','denomination','image']
+fieldnames=['id','description','denomination','image']
 
 def loadData():
     #open individual files
@@ -80,7 +80,7 @@ def downloadImage(img,name2,folder):
 def writeOutput(writer,content,denomination,idd, l2):
     image_name=l2[len(l2)-1]
     image_name=image_name.replace('preview_','')
-    writer.writerow({'id': idd,'title':content,'denomination':denomination,'image':image_name})
+    writer.writerow({'id': idd,'description':content,'denomination':denomination,'image':image_name})
     
         
 def main():
