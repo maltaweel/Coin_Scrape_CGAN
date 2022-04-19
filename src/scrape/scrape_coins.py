@@ -134,7 +134,10 @@ class Scrape():
             
             #get the link info relevant
             try:
-            
+                pathT=os.path.exists(folder)
+                
+                if pathT!=True:
+                    os.mkdir(folder)
                 #get numismatic data
                 if 'http://numismatics.org' in ids:
                     #use beautifulsoupt to scrape data from link (ids)
@@ -152,11 +155,6 @@ class Scrape():
                     for im in imgs:
                         l2=im['href']
                         content=title['content']
-                        try:
-                            os.mkdir(folder)
-                        except OSError:
-                            pass
-                        
                         #write out the image
                         self.downloadImage(l2,'',folder)
                         
