@@ -13,7 +13,7 @@ from os import listdir
 import csv
 import urllib.request
 from bs4 import BeautifulSoup 
-from rpy2.tests.robjects.test_dataframe import test_from_csvfile
+#from rpy2.tests.robjects.test_dataframe import test_from_csvfile
 
 #the path to the data folder
 pn=os.path.abspath(__file__)
