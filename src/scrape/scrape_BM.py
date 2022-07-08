@@ -16,6 +16,10 @@ from bs4 import BeautifulSoup
 import certifi
 import ssl
 from scrape.scrape_coins import Scrape
+import imageio as iio
+
+from scipy import misc as misc
+
 
 context = ssl._create_unverified_context()
 
@@ -108,6 +112,15 @@ class BM_Scrape(Scrape):
     
         #write the binary data
         txt.write(download_img.read())
+        
+        imgg = iio.imread(path_to_data)
+        
+        split_f=os.path.join(pn,'images_split_bm')
+        n1=os.path.join(split_f,'h1_'+name)
+        n2=os.path.join(split_f,'h2_'+name)
+        
+        self.cutHalf(imgg,n1,n2)
+        
     
     '''
     Method to scrape information from links within a site (uri).
@@ -126,7 +139,23 @@ class BM_Scrape(Scrape):
         
         #write the data
         writer.writerow({'id': idd,'description':content,'denomination':denomination,'image':image_name})
-    
+        
+    def cutHalf(self, img, n1, n2):
+        # Read the image
+        height = img.shape[0]
+        width = img.shape[1]
+
+        # Cut the image in half
+        width_cutoff = width // 2
+        s1 = img[:, :width_cutoff]
+        s2 = img[:, width_cutoff:]
+        
+        iio.imwrite(n1, s1)
+        iio.imwrite(n2, s2)
+        
+        
+        # Save each half
+        return s1,s2
 '''
 The main to run the module.
 '''        
