@@ -4,6 +4,9 @@
 This is an implementation of the conditional GAN model
 as applied to coin images from different museums. The goal is to reconstruct
 coins so that partial or incomplete coins can be recreated from original coins.
+
+
+@author: Hurma Ehtesham
 #
 """
 
