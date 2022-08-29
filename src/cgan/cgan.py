@@ -360,7 +360,7 @@ def performance(H):
     plt.xlabel("Number of epochs")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig('results/performance.png', dpi=1000, bbox_inches='tight')
+    plt.savefig(os.path.join(training_directory,'performance.png'), dpi=1000, bbox_inches='tight')
     plt.show()
 
 """##  Initialize training parameters"""
