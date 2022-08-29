@@ -366,7 +366,7 @@ def performance(H):
 """##  Initialize training parameters"""
 
 # Parameters
-num_epochs = 50         ### (Change this to 10)
+num_epochs = 50         ### (Change this to 10-100)
 latent_dim = 100
 batch_size = 128
 learning_rate = 0.0002
